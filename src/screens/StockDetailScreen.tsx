@@ -1,5 +1,13 @@
-import React, {useEffect, useState} from 'react';
-import {View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  StyleSheet,
+} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {RouteProp, useRoute} from '@react-navigation/native';
 import {StockDetailParams} from '../navigation/types';
@@ -90,7 +98,7 @@ export default function StockDetailScreen(): React.JSX.Element {
   const [price, setPrice] = useState<StockPrice | null>(null);
   const [detail, setDetail] = useState<StockDetailInfo | null>(null);
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     let cancelled = false;
     setLoading(true);
     const [fetchPrice, fetchDetail] = params.isForeign
@@ -107,6 +115,8 @@ export default function StockDetailScreen(): React.JSX.Element {
       cancelled = true;
     };
   }, [params.code, params.reutersCode, params.isForeign]);
+
+  useEffect(() => loadData(), [loadData]);
 
   const toggleFavorite = async () => {
     if (isFavorite) {
@@ -130,7 +140,18 @@ export default function StockDetailScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={() => {
+              loadData();
+            }}
+            colors={[colors.accent]}
+            tintColor={colors.accent}
+          />
+        }>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.stockName}>{params.name}</Text>
@@ -145,7 +166,7 @@ export default function StockDetailScreen(): React.JSX.Element {
           </TouchableOpacity>
         </View>
 
-        {loading ? (
+        {loading && !price && !detail ? (
           <ActivityIndicator style={styles.loading} color={colors.accent} />
         ) : (
           <>
