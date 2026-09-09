@@ -2,37 +2,33 @@ import { open, DB } from '@op-engineering/op-sqlite';
 
 import {StockSummary} from '../types/stock';
 
-let dbInstance: DB | null = null;
+let dbPromise: Promise<DB> | null = null;
 
-function getDb(): DB {
-  if (!dbInstance) {
-    dbInstance = open({ name: 'favorites.db' });
-    dbInstance.execute(
-      `CREATE TABLE IF NOT EXISTS favorites (
-        code TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        market TEXT NOT NULL,
-        added_at TEXT NOT NULL,
-        reuters_code TEXT NOT NULL DEFAULT '',
-        is_foreign INTEGER NOT NULL DEFAULT 0
-      )`
-    );
-    // 기존 설치본은 위 CREATE TABLE이 스킵되므로 컬럼을 직접 추가한다. 이미 있으면 에러가 나므로 무시한다.
-    try {
-      dbInstance.execute("ALTER TABLE favorites ADD COLUMN reuters_code TEXT NOT NULL DEFAULT ''");
-    } catch {}
-    try {
-      dbInstance.execute('ALTER TABLE favorites ADD COLUMN is_foreign INTEGER NOT NULL DEFAULT 0');
-    } catch {}
+async function getDb(): Promise<DB> {
+  if (!dbPromise) {
+    dbPromise = (async () => {
+      const db = open({ name: 'favorites.db' });
+      await db.execute(
+        `CREATE TABLE IF NOT EXISTS favorites (
+          code TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          market TEXT NOT NULL,
+          added_at TEXT NOT NULL,
+          reuters_code TEXT NOT NULL DEFAULT '',
+          is_foreign INTEGER NOT NULL DEFAULT 0
+        )`
+      );
+      // 기존 설치본은 위 CREATE TABLE이 스킵되므로 컬럼을 직접 추가한다. 이미 있으면 에러가 나므로 무시한다.
+      await db.execute("ALTER TABLE favorites ADD COLUMN reuters_code TEXT NOT NULL DEFAULT ''").catch(() => {});
+      await db.execute('ALTER TABLE favorites ADD COLUMN is_foreign INTEGER NOT NULL DEFAULT 0').catch(() => {});
+      return db;
+    })();
   }
-  return dbInstance;
+  return dbPromise;
 }
 
 export async function initDatabase(): Promise<void> {
-  return new Promise((resolve) => {
-    getDb();
-    resolve();
-  });
+  await getDb();
 }
 
 export async function addFavorite(

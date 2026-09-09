@@ -54,6 +54,11 @@ function fetchBasic(reutersCode: string): Promise<BasicResponse | null> {
   return fetchJson<BasicResponse>(`${BASE_URL}/basic?code=${encodeURIComponent(reutersCode)}&endType=stock`);
 }
 
+// 국내 시세 API와 달리 이 값들은 부호가 이미 포함돼 있다. 화면에서 direction 기준으로 부호를 다시 붙이므로 여기서 제거한다.
+function stripSign(value: string): string {
+  return value.replace('-', '');
+}
+
 function toStockPrice(basic: BasicResult): StockPrice {
   const info = totalInfoMap(basic.stockItemTotalInfos);
   const direction = basic.compareToPreviousPrice?.name;
@@ -62,8 +67,8 @@ function toStockPrice(basic: BasicResult): StockPrice {
   return {
     market: basic.stockExchangeType?.nameKor ?? '',
     closePrice: basic.closePrice,
-    changePrice: basic.compareToPreviousClosePrice,
-    changeRatio: basic.fluctuationsRatio,
+    changePrice: stripSign(basic.compareToPreviousClosePrice),
+    changeRatio: stripSign(basic.fluctuationsRatio),
     direction:
       direction === 'RISING' || direction === 'FALLING' || direction === 'UNCHANGED' ? direction : 'UNCHANGED',
     openPrice: info.openPrice?.value ?? '',
