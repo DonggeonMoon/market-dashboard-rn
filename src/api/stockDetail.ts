@@ -37,10 +37,14 @@ function extractEncParam(html: string): string | undefined {
   return m ? m[1] : undefined;
 }
 
+function orUndefined(value?: string): string | undefined {
+  return value && value !== 'N/A' ? value : undefined;
+}
+
 function extractDigestValue(html: string, label: string): string | undefined {
   const re = new RegExp(`>${label}\\s*<b class="num">([^<]*)</b>`);
   const m = html.match(re);
-  return m ? m[1].trim() : undefined;
+  return orUndefined(m ? m[1].trim() : undefined);
 }
 
 function extractFundamentalEstimate(html: string, label: string): string | undefined {
@@ -48,7 +52,7 @@ function extractFundamentalEstimate(html: string, label: string): string | undef
     `<th class="left" scope="row">${label}</th>\\s*<td class="num">[^<]*</td>\\s*<td class="num[^"]*">([^<]*)</td>`,
   );
   const m = html.match(re);
-  return m ? m[1].replace(/원$/, '').trim() : undefined;
+  return orUndefined(m ? m[1].replace(/원$/, '').trim() : undefined);
 }
 
 function extractLabeledCell(html: string, label: string): string | undefined {
@@ -95,7 +99,7 @@ function parseConsensus(html: string): ConsensusInfo {
     opinion: m[1].trim(),
     targetPrice: m[2].trim(),
     eps: m[3].trim(),
-    per: m[4].trim(),
+    per: orUndefined(m[4].trim()),
     analystCount: m[5].trim(),
   };
 }

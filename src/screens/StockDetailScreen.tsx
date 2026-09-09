@@ -23,11 +23,19 @@ function Section({title, children}: {title: string; children: React.ReactNode}):
   );
 }
 
-function InfoRow({label, value}: {label: string; value?: string}): React.JSX.Element {
+function InfoRow({
+  label,
+  value,
+  emptyText = '-',
+}: {
+  label: string;
+  value?: string;
+  emptyText?: string;
+}): React.JSX.Element {
   return (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value || '-'}</Text>
+      <Text style={styles.infoValue}>{value || emptyText}</Text>
     </View>
   );
 }
@@ -166,11 +174,12 @@ export default function StockDetailScreen(): React.JSX.Element {
             </Section>
 
             <Section title="투자지표">
-              <InfoRow label="PER" value={detail?.indicator.per} />
+              <InfoRow label="PER" value={detail?.indicator.per} emptyText="없음" />
               <InfoRow label="EPS" value={detail?.indicator.eps} />
               <InfoRow
                 label="추정PER"
                 value={params.isForeign ? NOT_AVAILABLE_FOREIGN : detail?.indicator.estimatedPer}
+                emptyText="없음"
               />
               <InfoRow
                 label="추정EPS"
@@ -216,7 +225,7 @@ export default function StockDetailScreen(): React.JSX.Element {
                 }
               />
               <InfoRow label="EPS" value={detail?.consensus.eps} />
-              <InfoRow label="PER" value={detail?.consensus.per} />
+              <InfoRow label="PER" value={detail?.consensus.per} emptyText="없음" />
               <InfoRow
                 label="추정기관수"
                 value={params.isForeign ? NOT_AVAILABLE_FOREIGN : detail?.consensus.analystCount}
