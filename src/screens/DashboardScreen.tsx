@@ -16,13 +16,11 @@ import {toChangeText, toValueText, toTimeText} from '../api/format';
 import {formatEcosTime} from '../api/ecos';
 import {colors} from '../theme/colors';
 
-// ── 그리드 설정 ──────────────────────────────
-const MIN_CARD_WIDTH = 140; // 카드 최소 폭 (이보다 좁아지면 다음 줄로)
+const MIN_CARD_WIDTH = 140;
 const CARD_GAP = 12;
 const SCREEN_PADDING = 16; // scrollContent의 paddingHorizontal과 반드시 일치해야 함
 const DEFAULT_COLUMNS = 2;
 
-// ── 타입 정의 ──────────────────────────────
 interface IndexData {
   label: string;
   value?: string | null;
@@ -34,7 +32,6 @@ function isUpChange(change?: string): boolean {
   return !!change && change.trim().startsWith('+');
 }
 
-// ── MarketCard ──────────────────────────────
 function MarketCard({
   label,
   value,
@@ -55,7 +52,6 @@ function MarketCard({
   );
 }
 
-// ── 고정폭 그리드 ──────────────────────────────
 function CardGrid({
   items,
   cardWidth,
@@ -113,7 +109,6 @@ export default function DashboardScreen(): React.JSX.Element {
     {label: '일본'},
   ]);
 
-  // ── 화면 폭 측정 → 실제 카드 렌더링 가능 폭 기준으로 열 개수 + 카드폭 계산 ──────────────────────────────
   const handleScreenLayout = useCallback((e: LayoutChangeEvent) => {
     const screenWidth = e.nativeEvent.layout.width;
     if (screenWidth <= 0) return;
@@ -256,7 +251,6 @@ export default function DashboardScreen(): React.JSX.Element {
   );
 }
 
-// ── 스타일 ──────────────────────────────
 const styles = StyleSheet.create({
   safeArea: {flex: 1, backgroundColor: colors.background},
   topBar: {

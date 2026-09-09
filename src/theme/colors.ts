@@ -5,7 +5,7 @@ export const colors = {
   textSecondary: '#666666',
   textTertiary: '#999999',
   accent: '#3366FF',
-  rising: '#D32F2F', // 상승(빨강, 국내 주식 표기 관례)
-  falling: '#1976D2', // 하락(파랑)
+  rising: '#D32F2F', // 국내 주식 표기 관례: 상승은 빨강, 하락은 파랑
+  falling: '#1976D2',
   border: '#E0E0E0',
 };

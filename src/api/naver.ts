@@ -25,7 +25,6 @@ async function fetchRealtime(path: string): Promise<NaverRealtimeItem | null> {
   }
 }
 
-// ── 지수 ──────────────────────────────
 export const fetchKospi = () => fetchRealtime('domestic/index/KOSPI');
 export const fetchKosdaq = () => fetchRealtime('domestic/index/KOSDAQ');
 export const fetchSP500 = () => fetchRealtime('worldstock/index/.INX');
@@ -33,13 +32,9 @@ export const fetchNasdaq = () => fetchRealtime('worldstock/index/.IXIC');
 export const fetchNikkei = () => fetchRealtime('worldstock/index/.N225');
 export const fetchSox = () => fetchRealtime('worldstock/index/.SOX');
 
-
-
-// ── 원자재 ──────────────────────────────
 export const fetchWti = () => fetchRealtime('marketindex/energy/CLcv1');
 export const fetchGold = () => fetchRealtime('marketindex/metals/GCcv1');
 
-// ── 환율 ──────────────────────────────
 interface NaverFxResponse {
   country: {value: string; subValue: string; currencyUnit: string}[];
 }

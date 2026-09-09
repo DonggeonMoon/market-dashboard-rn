@@ -4,8 +4,8 @@ const BASE_URL = 'https://ecos.bok.or.kr/api/StatisticSearch';
 const STAT_CODE = '902Y006';
 
 export interface EcosRow {
-  TIME: string; // 예: "202412"
-  DATA_VALUE: string; // 예: "3.5"
+  TIME: string;
+  DATA_VALUE: string;
   ITEM_NAME1: string;
 }
 
@@ -36,7 +36,7 @@ async function fetchBaseRate(countryCode: string): Promise<EcosRow | null> {
     const json: EcosResponse = await res.json();
     const rows = json.StatisticSearch?.row;
     if (!rows || rows.length === 0) return null;
-    return rows[rows.length - 1]; // 가장 최신 월 데이터
+    return rows[rows.length - 1];
   } catch (e) {
     console.warn(`[ecos api] failed: ${countryCode}`, e);
     return null;
