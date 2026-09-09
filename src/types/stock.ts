@@ -2,6 +2,8 @@ export interface StockSummary {
   code: string;
   name: string;
   market: string;
+  reutersCode: string;
+  isForeign: boolean;
 }
 
 export interface StockPrice {
@@ -17,6 +19,8 @@ export interface StockPrice {
   tradeValue: string;
   marketCap: string;
   updatedAt: string;
+  // 종가/시가/고가/저가 뒤에 그대로 붙이는 통화 표기. 원화는 접두 공백 없이 '원', 외화는 ' USD'처럼 공백을 포함해서 저장한다.
+  currencyUnit: string;
 }
 
 export interface StockIndicator {

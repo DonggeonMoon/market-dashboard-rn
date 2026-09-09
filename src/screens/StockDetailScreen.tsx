@@ -6,10 +6,13 @@ import {StockDetailParams} from '../navigation/types';
 import {StockPrice, StockDetailInfo} from '../types/stock';
 import {fetchStockPrice} from '../api/stockPrice';
 import {fetchStockDetailInfo} from '../api/stockDetail';
+import {fetchForeignStockPrice, fetchForeignStockDetailInfo} from '../api/foreignStock';
 import {isFavorite as checkIsFavorite, addFavorite, removeFavorite} from '../db/favorites';
 import {colors} from '../theme/colors';
 
 type DetailRouteProp = RouteProp<{StockDetail: StockDetailParams}, 'StockDetail'>;
+
+const NOT_AVAILABLE_FOREIGN = '해외종목 미표시';
 
 function Section({title, children}: {title: string; children: React.ReactNode}): React.JSX.Element {
   return (
@@ -82,11 +85,10 @@ export default function StockDetailScreen(): React.JSX.Element {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([
-      fetchStockPrice(params.code),
-      fetchStockDetailInfo(params.code),
-      checkIsFavorite(params.code),
-    ]).then(([priceResult, detailResult, favoriteResult]) => {
+    const [fetchPrice, fetchDetail] = params.isForeign
+      ? [fetchForeignStockPrice(params.reutersCode), fetchForeignStockDetailInfo(params.reutersCode)]
+      : [fetchStockPrice(params.code), fetchStockDetailInfo(params.code)];
+    Promise.all([fetchPrice, fetchDetail, checkIsFavorite(params.code)]).then(([priceResult, detailResult, favoriteResult]) => {
       if (cancelled) return;
       setPrice(priceResult);
       setDetail(detailResult);
@@ -96,14 +98,20 @@ export default function StockDetailScreen(): React.JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [params.code]);
+  }, [params.code, params.reutersCode, params.isForeign]);
 
   const toggleFavorite = async () => {
     if (isFavorite) {
       await removeFavorite(params.code);
       setIsFavorite(false);
     } else {
-      await addFavorite(params.code, params.name, price?.market || params.market);
+      await addFavorite(
+        params.code,
+        params.name,
+        price?.market || params.market,
+        params.reutersCode,
+        params.isForeign,
+      );
       setIsFavorite(true);
     }
   };
@@ -135,7 +143,10 @@ export default function StockDetailScreen(): React.JSX.Element {
           <>
             <Section title="기본정보">
               <View style={styles.priceRow}>
-                <Text style={styles.priceValue}>{price?.closePrice ?? '-'}원</Text>
+                <Text style={styles.priceValue}>
+                  {price?.closePrice ?? '-'}
+                  {price?.currencyUnit ?? '원'}
+                </Text>
                 {price ? (
                   <Text style={[styles.priceChange, isDown ? styles.down : styles.up]}>
                     {sign}
@@ -144,11 +155,11 @@ export default function StockDetailScreen(): React.JSX.Element {
                   </Text>
                 ) : null}
               </View>
-              <InfoRow label="시가" value={price ? `${price.openPrice}원` : undefined} />
-              <InfoRow label="고가" value={price ? `${price.highPrice}원` : undefined} />
-              <InfoRow label="저가" value={price ? `${price.lowPrice}원` : undefined} />
+              <InfoRow label="시가" value={price ? `${price.openPrice}${price.currencyUnit}` : undefined} />
+              <InfoRow label="고가" value={price ? `${price.highPrice}${price.currencyUnit}` : undefined} />
+              <InfoRow label="저가" value={price ? `${price.lowPrice}${price.currencyUnit}` : undefined} />
               <InfoRow label="거래량" value={price ? `${price.volume}주` : undefined} />
-              <InfoRow label="거래대금" value={price ? `${price.tradeValue}원` : undefined} />
+              <InfoRow label="거래대금" value={price?.tradeValue} />
               {price?.updatedAt ? (
                 <Text style={styles.updatedAt}>기준시각 {formatUpdatedAt(price.updatedAt)}</Text>
               ) : null}
@@ -157,8 +168,14 @@ export default function StockDetailScreen(): React.JSX.Element {
             <Section title="투자지표">
               <InfoRow label="PER" value={detail?.indicator.per} />
               <InfoRow label="EPS" value={detail?.indicator.eps} />
-              <InfoRow label="추정PER" value={detail?.indicator.estimatedPer} />
-              <InfoRow label="추정EPS" value={detail?.indicator.estimatedEps} />
+              <InfoRow
+                label="추정PER"
+                value={params.isForeign ? NOT_AVAILABLE_FOREIGN : detail?.indicator.estimatedPer}
+              />
+              <InfoRow
+                label="추정EPS"
+                value={params.isForeign ? NOT_AVAILABLE_FOREIGN : detail?.indicator.estimatedEps}
+              />
               <InfoRow label="PBR" value={detail?.indicator.pbr} />
               <InfoRow label="BPS" value={detail?.indicator.bps} />
               <InfoRow label="배당수익률" value={detail?.indicator.dividendYield} />
@@ -190,10 +207,20 @@ export default function StockDetailScreen(): React.JSX.Element {
 
             <Section title="컨센서스">
               <InfoRow label="투자의견" value={detail?.consensus.opinion} />
-              <InfoRow label="목표주가" value={detail?.consensus.targetPrice ? `${detail.consensus.targetPrice}원` : undefined} />
+              <InfoRow
+                label="목표주가"
+                value={
+                  detail?.consensus.targetPrice
+                    ? `${detail.consensus.targetPrice}${price?.currencyUnit ?? '원'}`
+                    : undefined
+                }
+              />
               <InfoRow label="EPS" value={detail?.consensus.eps} />
               <InfoRow label="PER" value={detail?.consensus.per} />
-              <InfoRow label="추정기관수" value={detail?.consensus.analystCount} />
+              <InfoRow
+                label="추정기관수"
+                value={params.isForeign ? NOT_AVAILABLE_FOREIGN : detail?.consensus.analystCount}
+              />
             </Section>
           </>
         )}

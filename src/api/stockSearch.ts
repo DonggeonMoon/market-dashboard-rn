@@ -7,6 +7,8 @@ interface AutoCompleteItem {
   name: string;
   typeName: string;
   isEtf: boolean;
+  reutersCode: string;
+  nationCode: string;
 }
 
 interface AutoCompleteResponse {
@@ -25,7 +27,13 @@ export async function fetchStockSearch(query: string): Promise<StockSummary[]> {
     const items = json.result?.items ?? [];
     return items
       .filter(item => !item.isEtf)
-      .map(item => ({code: item.code, name: item.name, market: item.typeName}));
+      .map(item => ({
+        code: item.code,
+        name: item.name,
+        market: item.typeName,
+        reutersCode: item.reutersCode,
+        isForeign: item.nationCode !== 'KOR',
+      }));
   } catch (e) {
     console.warn(`[stock search] failed: ${query}`, e);
     return [];

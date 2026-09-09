@@ -59,7 +59,7 @@ export default function SearchScreen(): React.JSX.Element {
     if (isCurrentlyFavorite) {
       await removeFavorite(item.code);
     } else {
-      await addFavorite(item.code, item.name, item.market);
+      await addFavorite(item.code, item.name, item.market, item.reutersCode, item.isForeign);
     }
     setFavoriteCodes(prev => {
       const next = new Set(prev);

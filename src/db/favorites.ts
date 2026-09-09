@@ -12,14 +12,22 @@ function getDb(): DB {
         code TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         market TEXT NOT NULL,
-        added_at TEXT NOT NULL
+        added_at TEXT NOT NULL,
+        reuters_code TEXT NOT NULL DEFAULT '',
+        is_foreign INTEGER NOT NULL DEFAULT 0
       )`
     );
+    // 기존 설치본은 위 CREATE TABLE이 스킵되므로 컬럼을 직접 추가한다. 이미 있으면 에러가 나므로 무시한다.
+    try {
+      dbInstance.execute("ALTER TABLE favorites ADD COLUMN reuters_code TEXT NOT NULL DEFAULT ''");
+    } catch {}
+    try {
+      dbInstance.execute('ALTER TABLE favorites ADD COLUMN is_foreign INTEGER NOT NULL DEFAULT 0');
+    } catch {}
   }
   return dbInstance;
 }
 
-// 명시적으로 async/Promise 구조를 제공하여 외부 호출부(await initDatabase)와의 충돌을 막습니다.
 export async function initDatabase(): Promise<void> {
   return new Promise((resolve) => {
     getDb();
@@ -27,14 +35,18 @@ export async function initDatabase(): Promise<void> {
   });
 }
 
-export async function addFavorite(code: string, name: string, market: string): Promise<void> {
+export async function addFavorite(
+  code: string,
+  name: string,
+  market: string,
+  reutersCode: string,
+  isForeign: boolean,
+): Promise<void> {
   const db = await getDb();
-  await db.execute('INSERT OR REPLACE INTO favorites (code, name, market, added_at) VALUES (?, ?, ?, ?)', [
-    code,
-    name,
-    market,
-    new Date().toISOString(),
-  ]);
+  await db.execute(
+    'INSERT OR REPLACE INTO favorites (code, name, market, added_at, reuters_code, is_foreign) VALUES (?, ?, ?, ?, ?, ?)',
+    [code, name, market, new Date().toISOString(), reutersCode, isForeign ? 1 : 0],
+  );
 }
 
 export async function removeFavorite(code: string): Promise<void> {
@@ -44,8 +56,22 @@ export async function removeFavorite(code: string): Promise<void> {
 
 export async function getFavorites(): Promise<StockSummary[]> {
   const db = await getDb();
-  const result = await db.execute('SELECT code, name, market FROM favorites ORDER BY added_at DESC');
-  return (result.rows as unknown) as StockSummary[];
+  const result = await db.execute(
+    'SELECT code, name, market, reuters_code, is_foreign FROM favorites ORDER BY added_at DESC',
+  );
+  return (result.rows as unknown as Array<{
+    code: string;
+    name: string;
+    market: string;
+    reuters_code: string;
+    is_foreign: number;
+  }>).map(row => ({
+    code: row.code,
+    name: row.name,
+    market: row.market,
+    reutersCode: row.reuters_code || row.code,
+    isForeign: !!row.is_foreign,
+  }));
 }
 
 export async function isFavorite(code: string): Promise<boolean> {

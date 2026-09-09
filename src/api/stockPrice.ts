@@ -50,9 +50,10 @@ export async function fetchStockPrice(code: string): Promise<StockPrice | null> 
       highPrice: item.highPrice,
       lowPrice: item.lowPrice,
       volume: item.accumulatedTradingVolume,
-      tradeValue: item.accumulatedTradingValue,
+      tradeValue: `${item.accumulatedTradingValue}원`,
       marketCap: formatMarketCap(item.marketValueFullRaw),
       updatedAt: item.localTradedAt,
+      currencyUnit: '원',
     };
   } catch (e) {
     console.warn(`[stock price] failed: ${code}`, e);

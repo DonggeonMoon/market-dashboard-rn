@@ -1,6 +1,12 @@
 import {NavigatorScreenParams} from '@react-navigation/native';
 
-export type StockDetailParams = {code: string; name: string; market: string};
+export type StockDetailParams = {
+  code: string;
+  name: string;
+  market: string;
+  reutersCode: string;
+  isForeign: boolean;
+};
 
 export type SearchStackParamList = {
   SearchList: undefined;
