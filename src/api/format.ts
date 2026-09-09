@@ -2,13 +2,10 @@ import {NaverRealtimeItem} from './naver';
 
 export function toChangeText(item: NaverRealtimeItem | null): string | undefined {
   if (!item) return undefined;
-  const ratio = item.fluctuationsRatio;
-  const isDown =
-    item.fluctuationsType?.name === 'FALLING' ||
-    item.compareToPreviousPrice?.name === 'FALLING';
-  const sign = isDown ? '-' : '+';
-  const cleanRatio = ratio.replace('-', ''); // 부호 중복 방지
-  return `${sign}${cleanRatio}%`;
+  const num = parseFloat(item.fluctuationsRatio);
+  if (Number.isNaN(num)) return undefined;
+  const sign = num > 0 ? '+' : num < 0 ? '-' : '';
+  return `${sign}${Math.abs(num).toFixed(2)}%`;
 }
 
 export function toValueText(item: NaverRealtimeItem | null): string | undefined {

@@ -28,6 +28,10 @@ function formatMarketCap(raw: string | number): string {
   return `${eok.toLocaleString('ko-KR')}억원`;
 }
 
+function stripSign(value: string): string {
+  return value.replace('-', '');
+}
+
 export async function fetchStockPrice(code: string): Promise<StockPrice | null> {
   try {
     const res = await fetch(`${PRICE_URL}/${code}`);
@@ -40,8 +44,8 @@ export async function fetchStockPrice(code: string): Promise<StockPrice | null> 
     return {
       market: item.stockExchangeType?.nameKor ?? '',
       closePrice: item.closePrice,
-      changePrice: item.compareToPreviousClosePrice,
-      changeRatio: item.fluctuationsRatio,
+      changePrice: stripSign(item.compareToPreviousClosePrice),
+      changeRatio: stripSign(item.fluctuationsRatio),
       direction:
         direction === 'RISING' || direction === 'FALLING' || direction === 'UNCHANGED'
           ? direction
